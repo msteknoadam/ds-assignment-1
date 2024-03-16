@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, QueryCommandInput, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
@@ -9,8 +9,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		// Print Event
 		console.log("Event: ", event);
 		const pathParameters = event?.pathParameters;
+		const queryParameters = event?.queryStringParameters;
 
 		const movieId = pathParameters?.movieId ? parseInt(pathParameters.movieId) : undefined;
+		const minRating = queryParameters?.minRating ? parseFloat(queryParameters.minRating) : undefined;
 
 		if (!movieId) {
 			return {
@@ -22,16 +24,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 			};
 		}
 
-		const commandOutput = await ddbDocClient.send(
-			new QueryCommand({
-				TableName: process.env.TABLE_NAME,
-				// Assuming 'movieId' is the partition key or you are using a GSI where 'movieId' can be queried.
-				KeyConditionExpression: "movieId = :movieId",
-				ExpressionAttributeValues: {
-					":movieId": movieId,
-				},
-			})
-		);
+		const queryParams: QueryCommandInput = {
+			TableName: process.env.TABLE_NAME,
+			// Assuming 'movieId' is the partition key or you are using a GSI where 'movieId' can be queried.
+			KeyConditionExpression: "movieId = :movieId",
+			ExpressionAttributeValues: {
+				":movieId": movieId,
+			},
+		};
+
+		if (minRating) {
+			queryParams.FilterExpression = "rating > :minRating";
+			queryParams.ExpressionAttributeValues![":minRating"] = minRating;
+		}
+
+		const commandOutput = await ddbDocClient.send(new QueryCommand(queryParams));
 		if (!commandOutput.Items || commandOutput.Items.length === 0) {
 			return {
 				statusCode: 404,
