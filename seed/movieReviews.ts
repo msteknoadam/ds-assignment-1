@@ -24,14 +24,14 @@ export const movieReviews: MovieReview[] = [
 	},
 	{
 		movieId: 104,
-		reviewerName: "ScreenSavvy101",
+		reviewerName: "FilmCritic789",
 		reviewDate: "2023-10-15",
 		content: "Visually stunning with a gripping storyline. A must-watch!",
 		rating: 5,
 	},
 	{
 		movieId: 105,
-		reviewerName: "PlotTwister222",
+		reviewerName: "FilmCritic789",
 		reviewDate: "2023-10-19",
 		content: "An interesting twist that I did not see coming. Well done!",
 		rating: 4,
@@ -52,7 +52,7 @@ export const movieReviews: MovieReview[] = [
 	},
 	{
 		movieId: 108,
-		reviewerName: "ActionLover555",
+		reviewerName: "FilmCritic789",
 		reviewDate: "2023-10-14",
 		content: "Explosive action scenes but lacking in character development.",
 		rating: 3,
