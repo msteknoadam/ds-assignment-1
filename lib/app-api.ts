@@ -124,7 +124,10 @@ export class AppApi extends Construct {
 		const movieReviewsEndpoint = movieEndpoint.addResource("reviews");
 		movieReviewsEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
 
-		const movieReviewsByReviewerEndpoint = movieReviewsEndpoint.addResource("{reviewerName}");
-		movieReviewsByReviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
+		const movieReviewsByReviewerOrYearEndpoint = movieReviewsEndpoint.addResource("{reviewerNameOrYear}");
+		movieReviewsByReviewerOrYearEndpoint.addMethod(
+			"GET",
+			new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
+		);
 	}
 }

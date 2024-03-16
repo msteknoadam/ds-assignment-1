@@ -12,8 +12,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		const queryParameters = event?.queryStringParameters;
 
 		const movieId = pathParameters?.movieId ? parseInt(pathParameters.movieId) : undefined;
-		const reviewerName = pathParameters?.reviewerName;
 		const minRating = queryParameters?.minRating ? parseFloat(queryParameters.minRating) : undefined;
+		const reviewerNameOrYear = pathParameters?.reviewerNameOrYear;
+		let reviewerName: string | undefined = undefined,
+			year: string | undefined = undefined;
+
+		if (reviewerNameOrYear) {
+			const isYearParam = /^\d{4}$/.test(reviewerNameOrYear);
+			if (isYearParam) {
+				year = reviewerNameOrYear;
+			} else {
+				reviewerName = reviewerNameOrYear;
+			}
+		}
 
 		if (!movieId) {
 			return {
@@ -27,29 +38,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 		const queryParams: QueryCommandInput = {
 			TableName: process.env.TABLE_NAME,
-			// Assuming 'movieId' is the partition key or you are using a GSI where 'movieId' can be queried.
-			KeyConditionExpression: "movieId = :movieId",
 			ExpressionAttributeValues: {
 				":movieId": movieId,
 			},
 		};
 
-		let filterExpressions: string[] = [];
-		let expressionAttributeValues: Record<string, string | number> = {};
+		const keyConditionExpressions = ["movieId = :movieId"];
+		const filterExpressions: string[] = [];
 
 		if (minRating) {
 			filterExpressions.push("rating > :minRating");
-			expressionAttributeValues[":minRating"] = minRating;
+			queryParams.ExpressionAttributeValues![":minRating"] = minRating;
 		}
-
 		if (reviewerName) {
 			filterExpressions.push("reviewerName = :reviewerName");
-			expressionAttributeValues[":reviewerName"] = reviewerName;
+			queryParams.ExpressionAttributeValues![":reviewerName"] = reviewerName;
+		}
+		if (year) {
+			keyConditionExpressions.push("begins_with(reviewDate, :year)");
+			queryParams.ExpressionAttributeValues![":year"] = year;
 		}
 
+		if (keyConditionExpressions.length > 0) {
+			queryParams.KeyConditionExpression = keyConditionExpressions.join(" AND ");
+		}
 		if (filterExpressions.length > 0) {
 			queryParams.FilterExpression = filterExpressions.join(" AND ");
-			Object.assign(queryParams.ExpressionAttributeValues!, expressionAttributeValues);
 		}
 
 		const commandOutput = await ddbDocClient.send(new QueryCommand(queryParams));
