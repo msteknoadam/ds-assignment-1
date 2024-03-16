@@ -90,5 +90,8 @@ export class DsAssignment1Stack extends cdk.Stack {
 
 		const movieReviewsEndpoint = movieEndpoint.addResource("reviews");
 		movieReviewsEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
+
+		const movieReviewsByReviewerEndpoint = movieReviewsEndpoint.addResource("{reviewerName}");
+		movieReviewsByReviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
 	}
 }

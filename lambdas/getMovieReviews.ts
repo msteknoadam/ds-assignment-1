@@ -12,6 +12,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		const queryParameters = event?.queryStringParameters;
 
 		const movieId = pathParameters?.movieId ? parseInt(pathParameters.movieId) : undefined;
+		const reviewerName = pathParameters?.reviewerName;
 		const minRating = queryParameters?.minRating ? parseFloat(queryParameters.minRating) : undefined;
 
 		if (!movieId) {
@@ -36,6 +37,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		if (minRating) {
 			queryParams.FilterExpression = "rating > :minRating";
 			queryParams.ExpressionAttributeValues![":minRating"] = minRating;
+		}
+
+		if (reviewerName) {
+			queryParams.FilterExpression = "reviewerName = :reviewerName";
+			queryParams.ExpressionAttributeValues![":reviewerName"] = reviewerName;
 		}
 
 		const commandOutput = await ddbDocClient.send(new QueryCommand(queryParams));
