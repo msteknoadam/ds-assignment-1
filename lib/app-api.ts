@@ -8,6 +8,7 @@ import { movieReviews } from "../seed/movieReviews";
 import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 type AppApiProps = {
 	userPoolId: string;
@@ -43,6 +44,18 @@ export class AppApi extends Construct {
 				resources: [movieReviewsTable.tableArn],
 			}),
 		});
+
+		// Roles
+		const translateRole = new iam.Role(this, "LambdaTranslateExecutionRole", {
+			assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+			managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")],
+		});
+		translateRole.addToPolicy(
+			new iam.PolicyStatement({
+				actions: ["translate:TranslateText"],
+				resources: ["*"],
+			})
+		);
 
 		// Functions
 		const getMovieReviewsFn = new lambdanode.NodejsFunction(this, "GetMovieReviewsFn", {
@@ -93,11 +106,29 @@ export class AppApi extends Construct {
 			},
 		});
 
+		const getTranslatedReviewerReviewOfMovieFn = new lambdanode.NodejsFunction(
+			this,
+			"GetTranslatedReviewerReviewOfMovieFn",
+			{
+				architecture: lambda.Architecture.ARM_64,
+				runtime: lambda.Runtime.NODEJS_16_X,
+				entry: `${__dirname}/../lambdas/getTranslatedReviewerReviewOfMovieFn.ts`,
+				timeout: cdk.Duration.seconds(10),
+				memorySize: 128,
+				environment: {
+					TABLE_NAME: movieReviewsTable.tableName,
+					REGION: "eu-west-1",
+				},
+				role: translateRole,
+			}
+		);
+
 		// Permissions
 		movieReviewsTable.grantReadData(getMovieReviewsFn);
 		movieReviewsTable.grantReadWriteData(newMovieReviewFn);
 		movieReviewsTable.grantReadData(getReviewerReviewsFn);
 		movieReviewsTable.grantReadWriteData(updateMovieReviewFn);
+		movieReviewsTable.grantReadData(getTranslatedReviewerReviewOfMovieFn);
 
 		const appApi = new apig.RestApi(this, "AppApi", {
 			description: "DS Assignment 1 REST API",
@@ -145,6 +176,8 @@ export class AppApi extends Construct {
 		const movieReviewsByReviewerOrYearEndpoint = movieReviewsEndpoint.addResource("{reviewerNameOrYear}");
 		const reviewsEndpoint = appApi.root.addResource("reviews");
 		const reviewerReviewsEndpoint = reviewsEndpoint.addResource("{reviewerName}");
+		const reviewerReviewOfMovieEndpoint = reviewerReviewsEndpoint.addResource("{movieId}");
+		const reviewerReviewOfMovieTranslationEndpoint = reviewerReviewOfMovieEndpoint.addResource("translation");
 
 		// Methods
 		moviesReviewsEndpoint.addMethod("POST", new apig.LambdaIntegration(newMovieReviewFn, { proxy: true }), {
@@ -165,5 +198,9 @@ export class AppApi extends Construct {
 			}
 		);
 		reviewerReviewsEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewerReviewsFn, { proxy: true }));
+		reviewerReviewOfMovieTranslationEndpoint.addMethod(
+			"GET",
+			new apig.LambdaIntegration(getTranslatedReviewerReviewOfMovieFn, { proxy: true })
+		);
 	}
 }

@@ -23,5 +23,10 @@ export type SignInBody = {
 	password: string;
 };
 
-// Used to validate the query string og HTTP Get requests
+// Used to validate the body of movie review update request
 export type MovieReviewUpdateAttributes = Pick<MovieReview, "content">;
+
+// Used to validate the query parameters of translation request
+export type TranslationQueryParams = {
+	language: string;
+};
