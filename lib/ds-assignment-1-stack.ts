@@ -8,6 +8,8 @@ import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import { movieReviews } from "../seed/movieReviews";
 import * as apig from "aws-cdk-lib/aws-apigateway";
+import { UserPool } from "aws-cdk-lib/aws-cognito";
+import { AuthApi } from "./auth-api";
 
 export class DsAssignment1Stack extends cdk.Stack {
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -93,5 +95,26 @@ export class DsAssignment1Stack extends cdk.Stack {
 
 		const movieReviewsByReviewerEndpoint = movieReviewsEndpoint.addResource("{reviewerName}");
 		movieReviewsByReviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
+
+		// User Pool and Client
+		const userPool = new UserPool(this, "UserPool", {
+			signInAliases: { username: true, email: true },
+			selfSignUpEnabled: true,
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+		});
+
+		const userPoolId = userPool.userPoolId;
+
+		const appClient = userPool.addClient("AppClient", {
+			authFlows: { userPassword: true },
+		});
+
+		const userPoolClientId = appClient.userPoolClientId;
+
+		// Auth
+		new AuthApi(this, "AuthServiceApi", {
+			userPoolId: userPoolId,
+			userPoolClientId: userPoolClientId,
+		});
 	}
 }
