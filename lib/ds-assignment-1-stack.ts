@@ -1,19 +1,17 @@
 import * as cdk from "aws-cdk-lib";
-import { Construct } from "constructs";
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import { movieReviews } from "../seed/movieReviews";
-import * as custom from "aws-cdk-lib/custom-resources";
-import { generateBatch } from "../shared/util";
 import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as custom from "aws-cdk-lib/custom-resources";
+import { Construct } from "constructs";
+// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { generateBatch } from "../shared/util";
+import { movieReviews } from "../seed/movieReviews";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 
 export class DsAssignment1Stack extends cdk.Stack {
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
-
-		// The code that defines your stack goes here
 
 		// Tables
 		const movieReviewsTable = new dynamodb.Table(this, "MovieReviewsTable", {
@@ -24,7 +22,7 @@ export class DsAssignment1Stack extends cdk.Stack {
 		});
 
 		// Seeders
-		new custom.AwsCustomResource(this, "movieReviewsdbInitData", {
+		new custom.AwsCustomResource(this, "movieReviewsddbInitData", {
 			onCreate: {
 				service: "DynamoDB",
 				action: "batchWriteItem",
@@ -33,7 +31,7 @@ export class DsAssignment1Stack extends cdk.Stack {
 						[movieReviewsTable.tableName]: generateBatch(movieReviews),
 					},
 				},
-				physicalResourceId: custom.PhysicalResourceId.of("movieReviewsdbInitData"),
+				physicalResourceId: custom.PhysicalResourceId.of("movieReviewsddbInitData"),
 			},
 			policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
 				resources: [movieReviewsTable.tableArn],
