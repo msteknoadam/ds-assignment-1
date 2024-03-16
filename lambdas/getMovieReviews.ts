@@ -34,14 +34,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 			},
 		};
 
+		let filterExpressions: string[] = [];
+		let expressionAttributeValues: Record<string, string | number> = {};
+
 		if (minRating) {
-			queryParams.FilterExpression = "rating > :minRating";
-			queryParams.ExpressionAttributeValues![":minRating"] = minRating;
+			filterExpressions.push("rating > :minRating");
+			expressionAttributeValues[":minRating"] = minRating;
 		}
 
 		if (reviewerName) {
-			queryParams.FilterExpression = "reviewerName = :reviewerName";
-			queryParams.ExpressionAttributeValues![":reviewerName"] = reviewerName;
+			filterExpressions.push("reviewerName = :reviewerName");
+			expressionAttributeValues[":reviewerName"] = reviewerName;
+		}
+
+		if (filterExpressions.length > 0) {
+			queryParams.FilterExpression = filterExpressions.join(" AND ");
+			Object.assign(queryParams.ExpressionAttributeValues!, expressionAttributeValues);
 		}
 
 		const commandOutput = await ddbDocClient.send(new QueryCommand(queryParams));
