@@ -17,6 +17,7 @@ export class DsAssignment1Stack extends cdk.Stack {
 		const movieReviewsTable = new dynamodb.Table(this, "MovieReviewsTable", {
 			billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
 			partitionKey: { name: "movieId", type: dynamodb.AttributeType.NUMBER },
+			sortKey: { name: "reviewDate", type: dynamodb.AttributeType.STRING },
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			tableName: "MovieReviews",
 		});
@@ -39,10 +40,10 @@ export class DsAssignment1Stack extends cdk.Stack {
 		});
 
 		// Functions
-		const getAllMovieReviewsFn = new lambdanode.NodejsFunction(this, "GetAllMovieReviewsFn", {
+		const getMovieReviewsFn = new lambdanode.NodejsFunction(this, "GetMovieReviewsFn", {
 			architecture: lambda.Architecture.ARM_64,
 			runtime: lambda.Runtime.NODEJS_18_X,
-			entry: `${__dirname}/../lambdas/getAllMovieReviews.ts`,
+			entry: `${__dirname}/../lambdas/getMovieReviews.ts`,
 			timeout: cdk.Duration.seconds(10),
 			memorySize: 128,
 			environment: {
@@ -52,7 +53,7 @@ export class DsAssignment1Stack extends cdk.Stack {
 		});
 
 		// Permissions
-		movieReviewsTable.grantReadData(getAllMovieReviewsFn);
+		movieReviewsTable.grantReadData(getMovieReviewsFn);
 
 		const api = new apig.RestApi(this, "RestAPI", {
 			description: "DS Assignment 1 API",
@@ -68,6 +69,10 @@ export class DsAssignment1Stack extends cdk.Stack {
 		});
 
 		const moviesEndpoint = api.root.addResource("movies");
-		moviesEndpoint.addMethod("GET", new apig.LambdaIntegration(getAllMovieReviewsFn, { proxy: true }));
+
+		const movieEndpoint = moviesEndpoint.addResource("{movieId}");
+
+		const movieReviewsEndpoint = movieEndpoint.addResource("reviews");
+		movieReviewsEndpoint.addMethod("GET", new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true }));
 	}
 }
