@@ -9,7 +9,7 @@ export const movieReviews: MovieReview[] = [
 		rating: 5,
 	},
 	{
-		movieId: 102,
+		movieId: 101,
 		reviewerName: "MovieBuff456",
 		reviewDate: "2023-10-18",
 		content: "Great performance by the lead actor, but the plot was predictable.",
@@ -37,14 +37,14 @@ export const movieReviews: MovieReview[] = [
 		rating: 4,
 	},
 	{
-		movieId: 106,
+		movieId: 105,
 		reviewerName: "Cinephile333",
 		reviewDate: "2023-10-17",
 		content: "Average movie. Nothing out of the ordinary.",
 		rating: 3,
 	},
 	{
-		movieId: 107,
+		movieId: 105,
 		reviewerName: "DirectorFan444",
 		reviewDate: "2023-10-16",
 		content: "The director's unique style shines through, making it a memorable watch.",
