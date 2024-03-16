@@ -22,3 +22,6 @@ export type SignInBody = {
 	username: string;
 	password: string;
 };
+
+// Used to validate the query string og HTTP Get requests
+export type MovieReviewUpdateAttributes = Pick<MovieReview, "content">;

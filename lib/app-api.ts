@@ -81,10 +81,23 @@ export class AppApi extends Construct {
 			},
 		});
 
+		const updateMovieReviewFn = new lambdanode.NodejsFunction(this, "UpdateMovieReviewFn", {
+			architecture: lambda.Architecture.ARM_64,
+			runtime: lambda.Runtime.NODEJS_16_X,
+			entry: `${__dirname}/../lambdas/updateMovieReview.ts`,
+			timeout: cdk.Duration.seconds(10),
+			memorySize: 128,
+			environment: {
+				TABLE_NAME: movieReviewsTable.tableName,
+				REGION: "eu-west-1",
+			},
+		});
+
 		// Permissions
 		movieReviewsTable.grantReadData(getMovieReviewsFn);
 		movieReviewsTable.grantReadWriteData(newMovieReviewFn);
 		movieReviewsTable.grantReadData(getReviewerReviewsFn);
+		movieReviewsTable.grantReadWriteData(updateMovieReviewFn);
 
 		const appApi = new apig.RestApi(this, "AppApi", {
 			description: "DS Assignment 1 REST API",
@@ -142,6 +155,14 @@ export class AppApi extends Construct {
 		movieReviewsByReviewerOrYearEndpoint.addMethod(
 			"GET",
 			new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
+		);
+		movieReviewsByReviewerOrYearEndpoint.addMethod(
+			"PUT",
+			new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }),
+			{
+				authorizer: requestAuthorizer,
+				authorizationType: apig.AuthorizationType.CUSTOM,
+			}
 		);
 		reviewerReviewsEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewerReviewsFn, { proxy: true }));
 	}
