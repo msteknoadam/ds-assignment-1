@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, QueryCommandInput, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
@@ -28,7 +28,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 		if (!movieId) {
 			return {
-				statusCode: 404,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},

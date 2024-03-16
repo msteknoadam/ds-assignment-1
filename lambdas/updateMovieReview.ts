@@ -21,7 +21,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 		if (!movieId) {
 			return {
-				statusCode: 404,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},
@@ -30,7 +30,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		}
 		if (!reviewerName) {
 			return {
-				statusCode: 404,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},
@@ -70,7 +70,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 		const body = event.body ? JSON.parse(event.body) : undefined;
 		if (!body) {
 			return {
-				statusCode: 500,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},
@@ -80,7 +80,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 		if (!isValidBodyParams(body)) {
 			return {
-				statusCode: 500,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},

@@ -20,7 +20,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
 		if (!isValidBodyParams(body)) {
 			return {
-				statusCode: 500,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},

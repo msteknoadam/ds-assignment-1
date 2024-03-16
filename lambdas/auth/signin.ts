@@ -24,7 +24,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 			console.log("[Invalid]", body);
 
 			const res = {
-				statusCode: 500,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},
@@ -52,7 +52,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 		console.log("Auth", AuthenticationResult);
 		if (!AuthenticationResult) {
 			return {
-				statusCode: 400,
+				statusCode: 403,
 				body: JSON.stringify({
 					message: "User signin failed",
 				}),

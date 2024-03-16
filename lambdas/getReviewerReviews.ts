@@ -14,7 +14,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 		if (!reviewerName) {
 			return {
-				statusCode: 404,
+				statusCode: 400,
 				headers: {
 					"content-type": "application/json",
 				},
